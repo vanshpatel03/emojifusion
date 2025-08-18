@@ -27,7 +27,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -200,14 +205,24 @@ export function EmojiFusionForm() {
     form.reset({ emoji1: "🚀", emoji2: "🐸" });
   };
   
+  const handleAdClose = () => {
+    setShowAd(false);
+    // Reset usage count to allow more fusions after watching an ad
+    setUsageCount(0); 
+    localStorage.setItem("emojiFusionCount", "0");
+  };
+
   const renderSubmittedItem = (item: string) => {
     return <div className="text-6xl">{item}</div>;
   };
 
   return (
     <>
-    <Dialog open={showAd} onOpenChange={setShowAd}>
+    <Dialog open={showAd} onOpenChange={handleAdClose}>
       <DialogContent className="p-0 border-0 bg-transparent shadow-none max-w-4xl" closeButtonClass="top-0 right-0 !bg-gray-500 text-white">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Advertisement</DialogTitle>
+        </DialogHeader>
         <div dangerouslySetInnerHTML={{ __html: adCode }} />
       </DialogContent>
     </Dialog>
