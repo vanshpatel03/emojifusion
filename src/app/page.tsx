@@ -26,7 +26,12 @@ export default function Home() {
         <EmojiFusionForm />
       </main>
       <footer className="w-full p-2 bg-background/80 backdrop-blur-sm">
-        <div dangerouslySetInnerHTML={{ __html: adCode }} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
+            <div dangerouslySetInnerHTML={{ __html: adCode }} />
+            <div dangerouslySetInnerHTML={{ __html: adCode }} />
+            <div dangerouslySetInnerHTML={{ __html: adCode }} />
+            <div dangerouslySetInnerHTML={{ __html: adCode }} />
+        </div>
       </footer>
     </div>
   );
