@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,6 +19,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,12 +40,14 @@ import {
   Image as ImageIcon,
   Smile,
   UploadCloud,
+  Clapperboard,
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 
 const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})$/u;
+const dataUriRegex = /^data:image\/(png|jpeg|gif);base64,/;
 
 const formSchema = z.object({
   emoji1: z.string().min(1, "Required"),
@@ -45,6 +56,8 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 type InputType = "emoji" | "image";
+
+const DAILY_LIMIT = 3;
 
 const EmojiInput = ({
   field,
@@ -66,7 +79,7 @@ const EmojiInput = ({
       />
       {error && (
         <p className="text-center text-xs text-destructive mt-1">
-          {error.message}
+          Please enter a valid emoji.
         </p>
       )}
     </>
@@ -134,7 +147,7 @@ const ImageInput = ({
       />
       {error && (
         <p className="text-center text-xs text-destructive mt-1">
-          Required
+          An image upload is required.
         </p>
       )}
     </div>
@@ -147,7 +160,23 @@ export function EmojiFusionForm() {
   const [submittedData, setSubmittedData] = useState<FormValues | null>(null);
   const [inputType1, setInputType1] = useState<InputType>("emoji");
   const [inputType2, setInputType2] = useState<InputType>("emoji");
+  const [usageCount, setUsageCount] = useState(0);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    const lastUsageDate = localStorage.getItem("emojiFusionLastUsage");
+    const currentCount = localStorage.getItem("emojiFusionCount");
+
+    if (lastUsageDate === today) {
+      setUsageCount(Number(currentCount) || 0);
+    } else {
+      localStorage.setItem("emojiFusionLastUsage", today);
+      localStorage.setItem("emojiFusionCount", "0");
+      setUsageCount(0);
+    }
+  }, []);
 
   const isLoading = isPending;
 
@@ -157,23 +186,44 @@ export function EmojiFusionForm() {
   });
 
   const onSubmit = (values: FormValues) => {
+    if (usageCount >= DAILY_LIMIT) {
+      setShowLimitDialog(true);
+      return;
+    }
+    
+    // Custom validation
+    let hasError = false;
+    if (inputType1 === 'emoji' && !values.emoji1.match(emojiRegex)) {
+      form.setError('emoji1', { type: 'manual', message: 'Invalid emoji' });
+      hasError = true;
+    }
+    if (inputType1 === 'image' && !values.emoji1.match(dataUriRegex)) {
+        form.setError('emoji1', { type: 'manual', message: 'Image required' });
+        hasError = true;
+    }
+    if (inputType2 === 'emoji' && !values.emoji2.match(emojiRegex)) {
+      form.setError('emoji2', { type: 'manual', message: 'Invalid emoji' });
+      hasError = true;
+    }
+    if (inputType2 === 'image' && !values.emoji2.match(dataUriRegex)) {
+        form.setError('emoji2', { type: 'manual', message: 'Image required' });
+        hasError = true;
+    }
+
+    if(hasError) {
+      return;
+    }
+
     startTransition(async () => {
       setResult(null);
-      
-      const submissionData: FormValues = {
-        emoji1: inputType1 === "emoji" 
-          ? values.emoji1.match(emojiRegex) ? values.emoji1 : "👍" 
-          : values.emoji1,
-        emoji2: inputType2 === "emoji" 
-          ? values.emoji2.match(emojiRegex) ? values.emoji2 : "👍" 
-          : values.emoji2,
-      };
-
-      setSubmittedData(submissionData);
+      setSubmittedData(values);
       
       try {
-        const fusionResult = await generateEmojiFusion(submissionData);
+        const fusionResult = await generateEmojiFusion(values);
         setResult(fusionResult);
+        const newCount = usageCount + 1;
+        setUsageCount(newCount);
+        localStorage.setItem("emojiFusionCount", String(newCount));
       } catch (error) {
         console.error("Emoji fusion failed:", error);
         toast({
@@ -275,6 +325,7 @@ export function EmojiFusionForm() {
         onClick={() => {
           setInputType("emoji");
           form.resetField(fieldName, { defaultValue: '👍' });
+          form.clearErrors(fieldName);
         }}
         variant={inputType === "emoji" ? "secondary" : "ghost"}
         className="flex-1 shadow-sm data-[variant=secondary]:bg-background"
@@ -286,7 +337,8 @@ export function EmojiFusionForm() {
         type="button"
         onClick={() => {
           setInputType("image");
-           form.resetField(fieldName, { defaultValue: null });
+          form.resetField(fieldName, { defaultValue: "" });
+          form.clearErrors(fieldName);
         }}
         variant={inputType === "image" ? "secondary" : "ghost"}
         className="flex-1 shadow-sm data-[variant=secondary]:bg-background"
@@ -298,6 +350,7 @@ export function EmojiFusionForm() {
   );
 
   return (
+    <>
     <div className="w-full max-w-lg space-y-6">
       <Card className="overflow-hidden shadow-lg transition-all duration-300">
         <Form {...form}>
@@ -307,7 +360,7 @@ export function EmojiFusionForm() {
                 Create your Emoji
               </CardTitle>
               <CardDescription>
-                Pick two emojis, or upload your own images to fuse.
+                Pick two emojis, or upload your own images to fuse. You have {Math.max(0, DAILY_LIMIT - usageCount)} fusions left today.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -425,5 +478,30 @@ export function EmojiFusionForm() {
         )}
       </div>
     </div>
+    <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Clapperboard className="h-6 w-6 text-primary" />
+              Daily Limit Reached
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You've used all your free emoji fusions for today. To create more, please watch a short ad.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setShowLimitDialog(false)}>Cancel</Button>
+            <Button onClick={() => {
+              toast({ title: "Sorry!", description: "Ad functionality is not implemented yet." });
+              setShowLimitDialog(false);
+            }}>
+              Watch Ad
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
+
+    
