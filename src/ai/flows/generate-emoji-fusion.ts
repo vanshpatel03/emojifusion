@@ -36,16 +36,15 @@ export async function generateEmojiFusion(input: GenerateEmojiFusionInput): Prom
   return generateEmojiFusionFlow(input);
 }
 
-const prompt = ai.definePrompt({
+const fusionPrompt = ai.definePrompt({
   name: 'generateEmojiFusionPrompt',
   input: {schema: GenerateEmojiFusionInputSchema},
-  output: {schema: GenerateEmojiFusionOutputSchema},
   prompt: `You are an AI that can fuse two emojis together to create a new emoji.
 
   The first emoji is: {{{emoji1}}}
   The second emoji is: {{{emoji2}}}
 
-  Create a new emoji that is a fusion of the two emojis.  The output should be an image of the new emoji.  Return the new emoji as a data URI.  It should still look like an emoji - a small, simple image with a transparent background. Do not include a border.
+  Create a new emoji that is a fusion of the two emojis.  The output should be an image of the new emoji.  It should still look like an emoji - a small, simple image with a transparent background. Do not include a border.
   `,
   config: {
     safetySettings: [
@@ -76,9 +75,10 @@ const generateEmojiFusionFlow = ai.defineFlow(
     outputSchema: GenerateEmojiFusionOutputSchema,
   },
   async input => {
+    const filledPrompt = await fusionPrompt.render(input);
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
-      prompt: {prompt, input},
+      prompt: filledPrompt.prompt,
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
       },
