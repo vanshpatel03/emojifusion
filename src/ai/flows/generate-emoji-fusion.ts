@@ -1,9 +1,9 @@
-// Implemented GenerateEmojiFusion flow using Gemini 2.0 Flash to generate a new emoji from two existing emojis.
+// Implemented GenerateEmojiFusion flow using Gemini 2.0 Flash to generate a new emoji from two existing emojis or images.
 
 'use server';
 
 /**
- * @fileOverview Generates a new emoji by fusing two existing emojis using AI.
+ * @fileOverview Generates a new emoji by fusing two existing emojis or images using AI.
  *
  * - generateEmojiFusion - A function that handles the emoji fusion process.
  * - GenerateEmojiFusionInput - The input type for the generateEmojiFusion function.
@@ -13,13 +13,15 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const isDataUri = (str: string) => str.startsWith('data:image/');
+
 const GenerateEmojiFusionInputSchema = z.object({
   emoji1: z
     .string()
-    .describe('The first emoji to fuse.'),
+    .describe('The first emoji or a data URI of an image to fuse.'),
   emoji2: z
     .string()
-    .describe('The second emoji to fuse.'),
+    .describe('The second emoji or a data URI of an image to fuse.'),
 });
 export type GenerateEmojiFusionInput = z.infer<typeof GenerateEmojiFusionInputSchema>;
 
@@ -27,7 +29,7 @@ const GenerateEmojiFusionOutputSchema = z.object({
   fusedEmojiDataUri: z
     .string()
     .describe(
-      "The data URI of the generated emoji image, that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "The data URI of the generated emoji image, that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"
     ),
 });
 export type GenerateEmojiFusionOutput = z.infer<typeof GenerateEmojiFusionOutputSchema>;
@@ -39,12 +41,21 @@ export async function generateEmojiFusion(input: GenerateEmojiFusionInput): Prom
 const fusionPrompt = ai.definePrompt({
   name: 'generateEmojiFusionPrompt',
   input: {schema: GenerateEmojiFusionInputSchema},
-  prompt: `You are an AI that can fuse two emojis together to create a new emoji.
+  prompt: `You are an AI that can fuse two emojis or images together to create a new one.
 
+  {{#if (isDataUri emoji1)}}
+  The first image is: {{media url=emoji1}}
+  {{else}}
   The first emoji is: {{{emoji1}}}
-  The second emoji is: {{{emoji2}}}
+  {{/if}}
 
-  Create a new emoji that is a fusion of the two emojis.  The output should be an image of the new emoji.  It should still look like an emoji - a small, simple image with a transparent background. Do not include a border.
+  {{#if (isDataUri emoji2)}}
+  The second image is: {{media url=emoji2}}
+  {{else}}
+  The second emoji is: {{{emoji2}}}
+  {{/if}}
+
+  Create a new emoji that is a fusion of the two. The output should be an image of the new emoji. It should still look like an emoji - a small, simple image with a transparent background. Do not include a border.
   `,
   config: {
     safetySettings: [
@@ -66,6 +77,7 @@ const fusionPrompt = ai.definePrompt({
       },
     ],
   },
+  helpers: {isDataUri},
 });
 
 const generateEmojiFusionFlow = ai.defineFlow(
@@ -78,7 +90,7 @@ const generateEmojiFusionFlow = ai.defineFlow(
     const filledPrompt = await fusionPrompt.render(input);
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
-      prompt: filledPrompt.messages[0].content[0].text!,
+      prompt: filledPrompt.messages[0].content,
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
       },
