@@ -85,23 +85,7 @@ const EmojiInput = ({
   );
 };
 
-const adCode = `<div style="position: absolute; z-index: 99999">
-      <input autocomplete="off" type="checkbox" id="aadsstickymeh4tp95" hidden />
-      <div style="padding-top: auto; padding-bottom: 0;">
-        <div style="width:100%;height:auto;position:fixed;text-align:center;font-size:0;top:0;left:0;right:0;margin:auto">
-          <label for="aadsstickymeh4tp95" style="top: 50%;transform: translateY(-50%);right:24px;; position: absolute;border-radius: 4px; background: rgba(248, 248, 249, 0.70); padding: 4px;z-index: 99999;cursor:pointer">
-            <svg fill="#000000" height="16px" width="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 490 490">
-              <polygon points="456.851,0 245,212.564 33.149,0 0.708,32.337 212.669,245.004 0.708,457.678 33.149,490 245,277.443 456.851,490 489.292,457.678 277.331,245.004 489.292,32.337 "/>
-            </svg>
-          </label>
-          <div id="frame" style="width: 100%;margin: auto;background: rgba(0, 0, 0, 0.50);position: relative; z-index: 99998;"><iframe data-aa=2407156 src=//acceptable.a-ads.com/2407156/?size=Adaptive style='border:0; padding:0; width:70%; height:auto; overflow:hidden; margin: auto'></iframe></div>
-        </div>
-        <style>
-      #aadsstickymeh4tp95:checked + div {
-        display: none;
-      }
-    </style>
-    </div></div>`;
+const adCode = `<div style="width:100%;margin: auto;background: rgba(0, 0, 0, 0.50);position: relative; z-index: 99998;"><iframe data-aa=2407156 src=//acceptable.a-ads.com/2407156/?size=Adaptive style='border:0; padding:0; width:70%; height:auto; overflow:hidden; margin: auto'></iframe></div>`;
 
 export function EmojiFusionForm() {
   const [isPending, startTransition] = useTransition();
@@ -207,9 +191,10 @@ export function EmojiFusionForm() {
   
   const handleAdClose = () => {
     setShowAd(false);
-    // Reset usage count to allow more fusions after watching an ad
-    setUsageCount(0); 
-    localStorage.setItem("emojiFusionCount", "0");
+    // Decrease usage count by one to give user one more fusion
+    const newCount = Math.max(0, usageCount - 1);
+    setUsageCount(newCount); 
+    localStorage.setItem("emojiFusionCount", String(newCount));
   };
 
   const renderSubmittedItem = (item: string) => {
@@ -219,11 +204,18 @@ export function EmojiFusionForm() {
   return (
     <>
     <Dialog open={showAd} onOpenChange={handleAdClose}>
-      <DialogContent className="p-0 border-0 bg-transparent shadow-none max-w-4xl" closeButtonClass="top-0 right-0 !bg-gray-500 text-white">
+      <DialogContent className="p-0 border-0 bg-transparent shadow-none max-w-4xl" closeButtonClass="top-2 right-2 !bg-gray-500 text-white">
         <DialogHeader className="sr-only">
           <DialogTitle>Advertisement</DialogTitle>
         </DialogHeader>
-        <div dangerouslySetInnerHTML={{ __html: adCode }} />
+        <div className="flex flex-col gap-4 p-4 bg-background rounded-lg">
+          <div dangerouslySetInnerHTML={{ __html: adCode }} />
+          <div className="flex gap-4">
+             <div className="flex-1" dangerouslySetInnerHTML={{ __html: adCode }} />
+             <div className="flex-1" dangerouslySetInnerHTML={{ __html: adCode }} />
+          </div>
+          <div dangerouslySetInnerHTML={{ __html: adCode }} />
+        </div>
       </DialogContent>
     </Dialog>
     <div className="w-full max-w-lg space-y-6">
