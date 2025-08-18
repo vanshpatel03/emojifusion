@@ -203,180 +203,180 @@ export function EmojiFusionForm() {
 
   return (
     <>
-    <Dialog open={showAd} onOpenChange={handleAdClose}>
-      <DialogContent className="p-0 border-0 bg-transparent shadow-none max-w-4xl" closeButtonClass="top-2 right-2 !bg-gray-500 text-white">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Advertisement</DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col gap-4 p-4 bg-background rounded-lg">
-          <div dangerouslySetInnerHTML={{ __html: adCode }} />
-          <div className="flex gap-4">
-             <div className="flex-1" dangerouslySetInnerHTML={{ __html: adCode }} />
-             <div className="flex-1" dangerouslySetInnerHTML={{ __html: adCode }} />
+      <Dialog open={showAd} onOpenChange={handleAdClose}>
+        <DialogContent className="p-0 border-0 bg-transparent shadow-none max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Advertisement</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 p-4 bg-background rounded-lg">
+            <div dangerouslySetInnerHTML={{ __html: adCode }} />
+            <div className="flex gap-4">
+              <div className="flex-1" dangerouslySetInnerHTML={{ __html: adCode }} />
+              <div className="flex-1" dangerouslySetInnerHTML={{ __html: adCode }} />
+            </div>
+            <div dangerouslySetInnerHTML={{ __html: adCode }} />
           </div>
-          <div dangerouslySetInnerHTML={{ __html: adCode }} />
-        </div>
-      </DialogContent>
-    </Dialog>
-    <div className="w-full max-w-lg space-y-6">
-      <Card className="overflow-hidden shadow-lg transition-all duration-300">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardHeader>
-              <CardTitle className="font-headline text-2xl">
-                Create your Emoji
-              </CardTitle>
-              <CardDescription>
-                Pick two emojis to fuse. You have {Math.max(0, DAILY_LIMIT - usageCount)} fusions left today.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-row items-stretch justify-center gap-4">
-                <div className="flex-1 space-y-2">
-                    <Controller
-                        name="emoji1"
-                        control={form.control}
-                        render={({ field, fieldState: { error } }) => (
-                            <EmojiInput field={field} error={error} />
-                        )}
-                    />
-                </div>
-
-                <div className="self-center pt-8">
-                  <Plus className="h-8 w-8 text-muted-foreground" />
-                </div>
-
-                <div className="flex-1 space-y-2">
-                    <Controller
-                        name="emoji2"
-                        control={form.control}
-                        render={({ field, fieldState: { error } }) => (
-                            <EmojiInput field={field} error={error} />
-                        )}
-                    />
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
-                disabled={isLoading}
-              >
-                <Wand2 className="mr-2 h-5 w-5" />
-                {isLoading ? "Fusing..." : "Fuse Emojis"}
-              </Button>
-            </CardFooter>
-          </form>
-        </Form>
-      </Card>
-
-      <div
-        className={cn(
-          "transition-all duration-500 ease-in-out",
-          (isLoading || result) && submittedData
-            ? "opacity-100 max-h-[1000px]"
-            : "opacity-0 max-h-0 overflow-hidden"
-        )}
-      >
-        {(isLoading || result) && submittedData && (
-          <Card className="shadow-lg animate-in fade-in-50">
-            <CardHeader>
-              <CardTitle className="font-headline text-2xl">
-                Your Creation
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleReset}
-                className="absolute top-3 right-3 text-muted-foreground hover:text-foreground h-8 w-8"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span className="sr-only">Start over</span>
-              </Button>
-            </CardHeader>
-            <CardContent className="grid grid-cols-3 items-center justify-items-center gap-2 sm:gap-4">
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex items-center justify-center h-20 w-20 animate-in fade-in zoom-in-50 duration-500">
-                  {renderSubmittedItem(submittedData.emoji1)}
-                </div>
-                <span className="text-sm text-muted-foreground">Source 1</span>
-              </div>
-              <Plus className="h-8 w-8 text-muted-foreground" />
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex items-center justify-center h-20 w-20 animate-in fade-in zoom-in-50 duration-500 delay-100">
-                  {renderSubmittedItem(submittedData.emoji2)}
-                </div>
-                <span className="text-sm text-muted-foreground">Source 2</span>
-              </div>
-            </CardContent>
-            <CardContent>
-              <div className="relative flex flex-col items-center justify-center gap-4 p-6 bg-secondary rounded-lg">
-                <h3 className="text-lg font-medium text-foreground">
-                  Fused Emoji
-                </h3>
-                {isLoading ? (
-                  <Skeleton className="h-32 w-32 rounded-lg" />
-                ) : result?.fusedEmojiDataUri ? (
-                  <Image
-                    src={result.fusedEmojiDataUri}
-                    alt="Fused Emoji"
-                    width={128}
-                    height={128}
-                    className="rounded-lg object-contain animate-in fade-in zoom-in-75 duration-700"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="h-32 w-32 flex items-center justify-center bg-muted rounded-lg text-destructive text-sm p-4 text-center">
-                    Generation Failed
+        </DialogContent>
+      </Dialog>
+      <div className="w-full max-w-lg space-y-6">
+        <Card className="overflow-hidden shadow-lg transition-all duration-300">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <CardHeader>
+                <CardTitle className="font-headline text-2xl">
+                  Create your Emoji
+                </CardTitle>
+                <CardDescription>
+                  Pick two emojis to fuse. You have {Math.max(0, DAILY_LIMIT - usageCount)} fusions left today.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-row items-stretch justify-center gap-4">
+                  <div className="flex-1 space-y-2">
+                      <Controller
+                          name="emoji1"
+                          control={form.control}
+                          render={({ field, fieldState: { error } }) => (
+                              <EmojiInput field={field} error={error} />
+                          )}
+                      />
                   </div>
-                )}
-              </div>
-            </CardContent>
 
-            {!isLoading && result && (
-              <CardFooter className="flex-col sm:flex-row gap-2 animate-in fade-in slide-in-from-bottom-5 duration-500">
+                  <div className="self-center pt-8">
+                    <Plus className="h-8 w-8 text-muted-foreground" />
+                  </div>
+
+                  <div className="flex-1 space-y-2">
+                      <Controller
+                          name="emoji2"
+                          control={form.control}
+                          render={({ field, fieldState: { error } }) => (
+                              <EmojiInput field={field} error={error} />
+                          )}
+                      />
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
                 <Button
-                  onClick={handleDownload}
-                  variant="outline"
-                  className="w-full"
+                  type="submit"
+                  size="lg"
+                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+                  disabled={isLoading}
                 >
-                  <Download className="mr-2 h-4 w-4" />
-                  Save
-                </Button>
-                <Button onClick={handleShare} className="w-full">
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
+                  <Wand2 className="mr-2 h-5 w-5" />
+                  {isLoading ? "Fusing..." : "Fuse Emojis"}
                 </Button>
               </CardFooter>
-            )}
-          </Card>
-        )}
+            </form>
+          </Form>
+        </Card>
+
+        <div
+          className={cn(
+            "transition-all duration-500 ease-in-out",
+            (isLoading || result) && submittedData
+              ? "opacity-100 max-h-[1000px]"
+              : "opacity-0 max-h-0 overflow-hidden"
+          )}
+        >
+          {(isLoading || result) && submittedData && (
+            <Card className="shadow-lg animate-in fade-in-50">
+              <CardHeader>
+                <CardTitle className="font-headline text-2xl">
+                  Your Creation
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleReset}
+                  className="absolute top-3 right-3 text-muted-foreground hover:text-foreground h-8 w-8"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span className="sr-only">Start over</span>
+                </Button>
+              </CardHeader>
+              <CardContent className="grid grid-cols-3 items-center justify-items-center gap-2 sm:gap-4">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex items-center justify-center h-20 w-20 animate-in fade-in zoom-in-50 duration-500">
+                    {renderSubmittedItem(submittedData.emoji1)}
+                  </div>
+                  <span className="text-sm text-muted-foreground">Source 1</span>
+                </div>
+                <Plus className="h-8 w-8 text-muted-foreground" />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex items-center justify-center h-20 w-20 animate-in fade-in zoom-in-50 duration-500 delay-100">
+                    {renderSubmittedItem(submittedData.emoji2)}
+                  </div>
+                  <span className="text-sm text-muted-foreground">Source 2</span>
+                </div>
+              </CardContent>
+              <CardContent>
+                <div className="relative flex flex-col items-center justify-center gap-4 p-6 bg-secondary rounded-lg">
+                  <h3 className="text-lg font-medium text-foreground">
+                    Fused Emoji
+                  </h3>
+                  {isLoading ? (
+                    <Skeleton className="h-32 w-32 rounded-lg" />
+                  ) : result?.fusedEmojiDataUri ? (
+                    <Image
+                      src={result.fusedEmojiDataUri}
+                      alt="Fused Emoji"
+                      width={128}
+                      height={128}
+                      className="rounded-lg object-contain animate-in fade-in zoom-in-75 duration-700"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="h-32 w-32 flex items-center justify-center bg-muted rounded-lg text-destructive text-sm p-4 text-center">
+                      Generation Failed
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+
+              {!isLoading && result && (
+                <CardFooter className="flex-col sm:flex-row gap-2 animate-in fade-in slide-in-from-bottom-5 duration-500">
+                  <Button
+                    onClick={handleDownload}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Save
+                  </Button>
+                  <Button onClick={handleShare} className="w-full">
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share
+                  </Button>
+                </CardFooter>
+              )}
+            </Card>
+          )}
+        </div>
       </div>
-    </div>
-    <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Clapperboard className="h-6 w-6 text-primary" />
-              Daily Limit Reached
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              You've used all your free emoji fusions for today. To create more, please watch a short ad.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setShowLimitDialog(false)}>Cancel</Button>
-            <Button onClick={() => {
-              setShowLimitDialog(false);
-              setShowAd(true);
-            }}>
-              Watch Ad
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Clapperboard className="h-6 w-6 text-primary" />
+                Daily Limit Reached
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                You've used all your free emoji fusions for today. To create more, please watch a short ad.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setShowLimitDialog(false)}>Cancel</Button>
+              <Button onClick={() => {
+                setShowLimitDialog(false);
+                setShowAd(true);
+              }}>
+                Watch Ad
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
     </>
   );
 }

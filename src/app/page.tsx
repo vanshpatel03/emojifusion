@@ -8,7 +8,6 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background">
       <header className="w-full p-2 space-y-2 bg-background/80 backdrop-blur-sm">
         <div dangerouslySetInnerHTML={{ __html: adCode }} />
-        <div dangerouslySetInnerHTML={{ __html: adCode }} />
       </header>
       <main className="flex flex-1 w-full flex-col items-center justify-center p-4 sm:p-8">
         <div className="flex flex-col items-center justify-center space-y-2 text-center mb-8">
