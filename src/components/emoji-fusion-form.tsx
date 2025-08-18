@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/card";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -37,25 +36,19 @@ import {
   Wand2,
   Plus,
   RefreshCw,
-  Image as ImageIcon,
-  Smile,
-  UploadCloud,
   Clapperboard,
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Label } from "@/components/ui/label";
 
 const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})$/u;
-const dataUriRegex = /^data:image\/(png|jpeg|gif);base64,/;
 
 const formSchema = z.object({
-  emoji1: z.string().min(1, "Required"),
-  emoji2: z.string().min(1, "Required"),
+  emoji1: z.string().min(1, "Required").regex(emojiRegex, "Invalid emoji"),
+  emoji2: z.string().min(1, "Required").regex(emojiRegex, "Invalid emoji"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
-type InputType = "emoji" | "image";
 
 const DAILY_LIMIT = 3;
 
@@ -86,80 +79,11 @@ const EmojiInput = ({
   );
 };
 
-const ImageInput = ({
-  field,
-  error,
-}: {
-  field: any;
-  error: any;
-}) => {
-  const [preview, setPreview] = useState<string | null>(field.value || null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUri = reader.result as string;
-        setPreview(dataUri);
-        field.onChange(dataUri);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  return (
-    <div className="w-full">
-      <Label
-        htmlFor={field.name}
-        className={cn(
-          "cursor-pointer flex flex-col items-center justify-center w-full h-32 sm:h-36 border-2 border-dashed rounded-lg transition-colors",
-          "hover:border-primary hover:bg-accent/50",
-          error && "border-destructive"
-        )}
-      >
-        {preview ? (
-          <Image
-            src={preview}
-            alt="Uploaded image"
-            width={100}
-            height={100}
-            className="object-contain h-full w-full p-2"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
-            <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
-            <p className="mb-1 text-sm text-muted-foreground">
-              <span className="font-semibold">Click to upload</span>
-            </p>
-            <p className="text-xs text-muted-foreground/80">PNG, JPG, or GIF</p>
-          </div>
-        )}
-      </Label>
-      <Input
-        id={field.name}
-        ref={inputRef}
-        type="file"
-        className="hidden"
-        accept="image/png, image/jpeg, image/gif"
-        onChange={handleFileChange}
-      />
-      {error && (
-        <p className="text-center text-xs text-destructive mt-1">
-          An image upload is required.
-        </p>
-      )}
-    </div>
-  );
-};
 
 export function EmojiFusionForm() {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<GenerateEmojiFusionOutput | null>(null);
   const [submittedData, setSubmittedData] = useState<FormValues | null>(null);
-  const [inputType1, setInputType1] = useState<InputType>("emoji");
-  const [inputType2, setInputType2] = useState<InputType>("emoji");
   const [usageCount, setUsageCount] = useState(0);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const { toast } = useToast();
@@ -188,29 +112,6 @@ export function EmojiFusionForm() {
   const onSubmit = (values: FormValues) => {
     if (usageCount >= DAILY_LIMIT) {
       setShowLimitDialog(true);
-      return;
-    }
-    
-    // Custom validation
-    let hasError = false;
-    if (inputType1 === 'emoji' && !values.emoji1.match(emojiRegex)) {
-      form.setError('emoji1', { type: 'manual', message: 'Invalid emoji' });
-      hasError = true;
-    }
-    if (inputType1 === 'image' && !values.emoji1.match(dataUriRegex)) {
-        form.setError('emoji1', { type: 'manual', message: 'Image required' });
-        hasError = true;
-    }
-    if (inputType2 === 'emoji' && !values.emoji2.match(emojiRegex)) {
-      form.setError('emoji2', { type: 'manual', message: 'Invalid emoji' });
-      hasError = true;
-    }
-    if (inputType2 === 'image' && !values.emoji2.match(dataUriRegex)) {
-        form.setError('emoji2', { type: 'manual', message: 'Image required' });
-        hasError = true;
-    }
-
-    if(hasError) {
       return;
     }
 
@@ -277,77 +178,12 @@ export function EmojiFusionForm() {
   const handleReset = () => {
     setResult(null);
     setSubmittedData(null);
-    setInputType1("emoji");
-    setInputType2("emoji");
     form.reset({ emoji1: "🚀", emoji2: "🐸" });
   };
   
   const renderSubmittedItem = (item: string) => {
-    if (item.startsWith("data:image/")) {
-      return (
-        <Image
-          src={item}
-          alt="Submitted item"
-          width={64}
-          height={64}
-          className="object-contain"
-        />
-      );
-    }
     return <div className="text-6xl">{item}</div>;
   };
-
-  const renderInput = (
-    name: "emoji1" | "emoji2",
-    inputType: InputType
-  ) => {
-    return (
-      <Controller
-        name={name}
-        control={form.control}
-        render={({ field, fieldState: { error } }) => (
-          <>
-            {inputType === "emoji" ? (
-              <EmojiInput field={field} error={error} />
-            ) : (
-              <ImageInput field={field} error={error} />
-            )}
-          </>
-        )}
-      />
-    );
-  };
-  
-  const createToggle = (inputType: InputType, setInputType: (type: InputType) => void, fieldName: 'emoji1' | 'emoji2') => (
-    <div className="flex bg-muted p-1 rounded-lg">
-      <Button
-        type="button"
-        onClick={() => {
-          setInputType("emoji");
-          form.resetField(fieldName, { defaultValue: '👍' });
-          form.clearErrors(fieldName);
-        }}
-        variant={inputType === "emoji" ? "secondary" : "ghost"}
-        className="flex-1 shadow-sm data-[variant=secondary]:bg-background"
-        size="sm"
-      >
-        <Smile className="mr-2 h-4 w-4" /> Emoji
-      </Button>
-      <Button
-        type="button"
-        onClick={() => {
-          setInputType("image");
-          form.resetField(fieldName, { defaultValue: "" });
-          form.clearErrors(fieldName);
-        }}
-        variant={inputType === "image" ? "secondary" : "ghost"}
-        className="flex-1 shadow-sm data-[variant=secondary]:bg-background"
-        size="sm"
-      >
-        <ImageIcon className="mr-2 h-4 w-4" /> Image
-      </Button>
-    </div>
-  );
 
   return (
     <>
@@ -360,23 +196,33 @@ export function EmojiFusionForm() {
                 Create your Emoji
               </CardTitle>
               <CardDescription>
-                Pick two emojis, or upload your own images to fuse. You have {Math.max(0, DAILY_LIMIT - usageCount)} fusions left today.
+                Pick two emojis to fuse. You have {Math.max(0, DAILY_LIMIT - usageCount)} fusions left today.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4">
+              <div className="flex flex-row items-stretch justify-center gap-4">
                 <div className="flex-1 space-y-2">
-                  {createToggle(inputType1, setInputType1, 'emoji1')}
-                  {renderInput("emoji1", inputType1)}
+                    <Controller
+                        name="emoji1"
+                        control={form.control}
+                        render={({ field, fieldState: { error } }) => (
+                            <EmojiInput field={field} error={error} />
+                        )}
+                    />
                 </div>
 
-                <div className="self-center pt-12 sm:pt-16">
+                <div className="self-center pt-8">
                   <Plus className="h-8 w-8 text-muted-foreground" />
                 </div>
 
                 <div className="flex-1 space-y-2">
-                  {createToggle(inputType2, setInputType2, 'emoji2')}
-                  {renderInput("emoji2", inputType2)}
+                    <Controller
+                        name="emoji2"
+                        control={form.control}
+                        render={({ field, fieldState: { error } }) => (
+                            <EmojiInput field={field} error={error} />
+                        )}
+                    />
                 </div>
               </div>
             </CardContent>
@@ -503,5 +349,3 @@ export function EmojiFusionForm() {
     </>
   );
 }
-
-    
