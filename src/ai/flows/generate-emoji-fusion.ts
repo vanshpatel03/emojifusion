@@ -78,7 +78,7 @@ const generateEmojiFusionFlow = ai.defineFlow(
   async input => {
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
-      prompt: prompt.prompt(input),
+      prompt: {prompt, input},
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
       },
