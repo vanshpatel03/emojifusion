@@ -85,7 +85,7 @@ const EmojiInput = ({
   );
 };
 
-const adCode = `<div style="width:100%;margin: auto;background: rgba(0, 0, 0, 0.50);position: relative; z-index: 99998;"><iframe data-aa=2407156 src=//acceptable.a-ads.com/2407156/?size=Adaptive style='border:0; padding:0; width:70%; height:auto; overflow:hidden; margin: auto'></iframe></div>`;
+const adCode = `<div style="width:100%;margin: auto;position: relative; z-index: 99998;"><iframe data-aa=2407156 src=//acceptable.a-ads.com/2407156/?size=Adaptive style='border:0; padding:0; width:100%; height:auto; overflow:hidden; margin: auto'></iframe></div>`;
 
 export function EmojiFusionForm() {
   const [isPending, startTransition] = useTransition();
